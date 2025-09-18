@@ -12,6 +12,10 @@
 	let showAiModal = false;
 	let showSidebar = false;
 	let aiInput = '';
+	
+	// 여행 계획 상태 관리
+	let travelPlan: any[] = [];
+	let showTravelPlan = false;
 
 	const jeonbukCenter: [number, number] = [35.7175, 127.1530];
 
@@ -71,8 +75,23 @@
 			const result = await response.json();
 
 			if (result.success) {
-				alert('여행 계획이 생성되었습니다!');
+				// 여행 계획 데이터 파싱 및 저장
+				if (result.plan && Array.isArray(result.plan)) {
+					travelPlan = result.plan;
+				} else if (result.data && Array.isArray(result.data)) {
+					travelPlan = result.data;
+				} else {
+					// JSON 문자열인 경우 파싱
+					try {
+						const parsedPlan = JSON.parse(result.plan || result.data || '[]');
+						travelPlan = Array.isArray(parsedPlan) ? parsedPlan : [];
+					} catch {
+						travelPlan = [];
+					}
+				}
+				
 				showAiModal = false;
+				showTravelPlan = true;
 				aiInput = '';
 			} else {
 				alert('여행 계획 생성에 실패했습니다: ' + result.error);
@@ -108,6 +127,12 @@
 		}
 	}
 
+	// 여행 계획 초기화 핸들러
+	function resetTravelPlan() {
+		showTravelPlan = false;
+		travelPlan = [];
+	}
+
 	onMount(async () => {
 		if (!browser) return;
 		
@@ -126,7 +151,13 @@
 			// southkorea-maps에서 GeoJSON 데이터 불러오기
 			let data;
 			try {
-				const response = await fetch('https://raw.githubusercontent.com/southkorea-maps/southkorea-maps.github.io/master/geojson/TL_SCCO_CTPRVN.json');
+				const response = await fetch('https://raw.githubusercontent.com/southkorea-maps/southkorea-maps.github.io/master/geojson/TL_SCCO_CTPRVN.json', {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json',
+					},
+					mode: 'cors'
+				});
 				if (!response.ok) {
 					throw new Error(`HTTP error! status: ${response.status}`);
 				}
@@ -237,7 +268,7 @@
 	</div>
 	
 	<!-- 여행 옵션 버튼들 -->
-	<div class="travel-options" class:hidden={showSidebar}>
+	<div class="travel-options" class:hidden={showSidebar || showTravelPlan}>
 		<button class="option-btn" data-theme="theme" on:click={handleOptionClick}>
 			<span class="btn-icon">🎯</span>
 			<span class="btn-text">테마 여행</span>
@@ -324,6 +355,46 @@
 				<div class="sidebar-content">
 					<p class="sidebar-message">일정을 추가해 보세요.</p>
 				</div>
+			</div>
+		</div>
+	{/if}
+	
+	<!-- 여행 계획 표시 -->
+	{#if showTravelPlan}
+		<div class="travel-plan-container">
+			<div class="travel-plan-header">
+				<h2>여행 계획</h2>
+				<button class="close-plan-btn" on:click={resetTravelPlan}>×</button>
+			</div>
+			<div class="travel-plan-content">
+				{#if travelPlan.length > 0}
+					{#each travelPlan as item, index}
+						<div class="plan-item">
+							<div class="plan-time">
+								<span class="time-badge">{item.time || `${index + 1}일차`}</span>
+							</div>
+							<div class="plan-details">
+								<h3 class="plan-title">{item.title || item.activity || item.name}</h3>
+								{#if item.description}
+									<p class="plan-description">{item.description}</p>
+								{/if}
+								{#if item.location}
+									<p class="plan-location">📍 {item.location}</p>
+								{/if}
+								{#if item.duration}
+									<p class="plan-duration">⏰ {item.duration}</p>
+								{/if}
+								{#if item.cost}
+									<p class="plan-cost">💰 {item.cost}</p>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				{:else}
+					<div class="no-plan">
+						<p>생성된 여행 계획이 없습니다.</p>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -811,6 +882,138 @@
 		}
 	}
 
+	/* 여행 계획 표시 스타일 */
+	.travel-plan-container {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 400px;
+		height: 100vh;
+		background: white;
+		box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+		z-index: 1500;
+		display: flex;
+		flex-direction: column;
+		animation: slideInLeft 0.3s ease;
+		overflow: hidden;
+	}
+
+	.travel-plan-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem 2rem;
+		border-bottom: 1px solid #e5e7eb;
+		background: #f9fafb;
+	}
+
+	.travel-plan-header h2 {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin: 0;
+	}
+
+	.close-plan-btn {
+		background: none;
+		border: none;
+		font-size: 1.5rem;
+		color: #6b7280;
+		cursor: pointer;
+		padding: 0.5rem;
+		border-radius: 50%;
+		transition: all 0.2s ease;
+		width: 2.5rem;
+		height: 2.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.close-plan-btn:hover {
+		background: #e5e7eb;
+		color: #374151;
+	}
+
+	.travel-plan-content {
+		flex: 1;
+		overflow-y: auto;
+		padding: 1rem 0;
+	}
+
+	.plan-item {
+		display: flex;
+		padding: 1.5rem 2rem;
+		border-bottom: 1px solid #f3f4f6;
+		transition: background-color 0.2s ease;
+	}
+
+	.plan-item:hover {
+		background: #f9fafb;
+	}
+
+	.plan-item:last-child {
+		border-bottom: none;
+	}
+
+	.plan-time {
+		flex-shrink: 0;
+		margin-right: 1rem;
+	}
+
+	.time-badge {
+		display: inline-block;
+		background: #4f46e5;
+		color: white;
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		min-width: 60px;
+		text-align: center;
+	}
+
+	.plan-details {
+		flex: 1;
+	}
+
+	.plan-title {
+		font-size: 1.1rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin: 0 0 0.5rem 0;
+		line-height: 1.4;
+	}
+
+	.plan-description {
+		font-size: 0.95rem;
+		color: #4b5563;
+		margin: 0 0 0.5rem 0;
+		line-height: 1.5;
+	}
+
+	.plan-location,
+	.plan-duration,
+	.plan-cost {
+		font-size: 0.875rem;
+		color: #6b7280;
+		margin: 0.25rem 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.no-plan {
+		text-align: center;
+		padding: 3rem 2rem;
+		color: #6b7280;
+	}
+
+	.no-plan p {
+		font-size: 1rem;
+		margin: 0;
+	}
+
 	/* 반응형 모달 */
 	@media (max-width: 768px) {
 		.modal {
@@ -824,6 +1027,22 @@
 
 		.sidebar {
 			width: 100%;
+		}
+
+		.travel-plan-container {
+			width: 100%;
+		}
+
+		.plan-item {
+			padding: 1rem 1.5rem;
+		}
+
+		.plan-title {
+			font-size: 1rem;
+		}
+
+		.plan-description {
+			font-size: 0.9rem;
 		}
 	}
 </style>
