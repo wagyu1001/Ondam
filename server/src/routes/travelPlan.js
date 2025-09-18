@@ -1,0 +1,250 @@
+import express from 'express';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config({ quiet: true });
+
+const router = express.Router();
+
+// Gemini API 초기화
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// 공공데이터포털 API 키
+const OPEN_API_KEY = process.env.OPEN_API_KEY;
+
+// 공공데이터포털 API 호출 함수들
+async function getCategoryTourData() {
+  try {
+    const response = await axios.get('https://apis.data.go.kr/6450000/CategoryTourService', {
+      params: {
+        serviceKey: OPEN_API_KEY,
+        type: 'json',
+        numOfRows: 100
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('분류별 관광 정보 API 오류:', error.message);
+    return null;
+  }
+}
+
+async function getTouristData() {
+  try {
+    const response = await axios.get('https://apis.data.go.kr/6450000/jeonbuktourist', {
+      params: {
+        serviceKey: OPEN_API_KEY,
+        type: 'json',
+        numOfRows: 100
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('주요 관광지 정보 API 오류:', error.message);
+    return null;
+  }
+}
+
+async function getThemeRestaurantData() {
+  try {
+    const response = await axios.get('https://apis.data.go.kr/6450000/ThemeRestaurantService', {
+      params: {
+        serviceKey: OPEN_API_KEY,
+        type: 'json',
+        numOfRows: 100
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('테마별 음식점 정보 API 오류:', error.message);
+    return null;
+  }
+}
+
+async function getAreaRestaurantData() {
+  try {
+    const response = await axios.get('https://apis.data.go.kr/6450000/AreaRestaurantService', {
+      params: {
+        serviceKey: OPEN_API_KEY,
+        type: 'json',
+        numOfRows: 100
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('권역별 음식점 정보 API 오류:', error.message);
+    return null;
+  }
+}
+
+async function getLocalFoodData() {
+  try {
+    const response = await axios.get('https://apis.data.go.kr/6450000/LocalFoodService', {
+      params: {
+        serviceKey: OPEN_API_KEY,
+        type: 'json',
+        numOfRows: 100
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('향토음식점 정보 API 오류:', error.message);
+    return null;
+  }
+}
+
+// AI 여행 계획 생성 API
+router.post('/generate', async (req, res) => {
+  try {
+    const { userInput } = req.body;
+
+    if (!userInput || !userInput.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: '여행에 대한 설명을 입력해주세요.'
+      });
+    }
+
+    // API 키 확인
+    if (!process.env.GEMINI_API_KEY || !process.env.OPEN_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        error: 'API 키가 설정되지 않았습니다. .env 파일에 GEMINI_API_KEY와 OPEN_API_KEY를 설정해주세요.'
+      });
+    }
+
+    // 모든 공공데이터 API에서 정보 수집
+    const [categoryTour, touristData, themeRestaurant, areaRestaurant, localFood] = await Promise.all([
+      getCategoryTourData(),
+      getTouristData(),
+      getThemeRestaurantData(),
+      getAreaRestaurantData(),
+      getLocalFoodData()
+    ]);
+
+    // 데이터 정리 및 통합
+    const jeonbukData = {
+      categoryTour: categoryTour?.response?.body?.items?.item || [],
+      touristData: touristData?.response?.body?.items?.item || [],
+      themeRestaurant: themeRestaurant?.response?.body?.items?.item || [],
+      areaRestaurant: areaRestaurant?.response?.body?.items?.item || [],
+      localFood: localFood?.response?.body?.items?.item || []
+    };
+
+    // Gemini API를 사용하여 여행 계획 생성
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const prompt = `
+당신은 전라북도 여행 전문가입니다. 사용자의 요구사항에 맞는 맞춤형 여행 계획을 만들어주세요.
+
+사용자 요구사항: "${userInput}"
+
+다음은 전라북도의 관광 정보입니다:
+
+관광지 정보:
+${JSON.stringify(jeonbukData.touristData.slice(0, 20), null, 2)}
+
+분류별 관광 정보:
+${JSON.stringify(jeonbukData.categoryTour.slice(0, 15), null, 2)}
+
+테마별 음식점:
+${JSON.stringify(jeonbukData.themeRestaurant.slice(0, 15), null, 2)}
+
+권역별 음식점:
+${JSON.stringify(jeonbukData.areaRestaurant.slice(0, 15), null, 2)}
+
+향토음식점:
+${JSON.stringify(jeonbukData.localFood.slice(0, 10), null, 2)}
+
+위 정보를 바탕으로 사용자의 요구사항에 맞는 1-3일 여행 계획을 JSON 형태로 만들어주세요. 
+
+응답 형식:
+{
+  "title": "여행 계획 제목",
+  "summary": "여행 계획 요약",
+  "duration": "여행 기간",
+  "days": [
+    {
+      "day": 1,
+      "title": "1일차 제목",
+      "activities": [
+        {
+          "time": "09:00",
+          "location": "장소명",
+          "description": "활동 설명",
+          "type": "관광지/음식점/체험"
+        }
+      ]
+    }
+  ],
+  "recommendations": {
+    "food": ["추천 음식점들"],
+    "attractions": ["추천 관광지들"],
+    "tips": ["여행 팁들"]
+  },
+  "budget": {
+    "estimated": "예상 비용",
+    "breakdown": "비용 세부사항"
+  }
+}
+
+실제 API 데이터에서 나온 장소명과 음식점명을 정확히 사용해주세요. 한국어로 응답해주세요.
+`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    // JSON 파싱 시도
+    let travelPlan;
+    try {
+      // JSON 부분만 추출 (```json으로 감싸진 경우 대비)
+      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+      const jsonText = jsonMatch ? jsonMatch[1] : text;
+      travelPlan = JSON.parse(jsonText);
+    } catch (parseError) {
+      console.error('JSON 파싱 오류:', parseError);
+      // JSON 파싱 실패 시 기본 구조로 반환
+      travelPlan = {
+        title: "전라북도 맞춤 여행",
+        summary: userInput,
+        duration: "1-2일",
+        days: [{
+          day: 1,
+          title: "전라북도 여행",
+          activities: [{
+            time: "09:00",
+            location: "전주 한옥마을",
+            description: "전통 한옥과 문화 체험",
+            type: "관광지"
+          }]
+        }],
+        recommendations: {
+          food: ["전주 비빔밥", "한정식"],
+          attractions: ["전주 한옥마을", "경기전"],
+          tips: ["편안한 신발을 신으세요", "카메라를 준비하세요"]
+        },
+        budget: {
+          estimated: "5-10만원",
+          breakdown: "교통비, 식비, 입장료 포함"
+        },
+        rawResponse: text
+      };
+    }
+
+    res.json({
+      success: true,
+      data: travelPlan,
+      message: '여행 계획이 성공적으로 생성되었습니다!'
+    });
+
+  } catch (error) {
+    console.error('여행 계획 생성 오류:', error);
+    res.status(500).json({
+      success: false,
+      error: '여행 계획 생성 중 오류가 발생했습니다: ' + error.message
+    });
+  }
+});
+
+export default router;
