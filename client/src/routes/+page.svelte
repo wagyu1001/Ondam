@@ -15,6 +15,7 @@
 	
 	// 여행 계획 상태 관리
 	let travelPlan: any[] = [];
+	let travelPlanInfo: any = {};
 	let showTravelPlan = false;
 
 	const jeonbukCenter: [number, number] = [35.7175, 127.1530];
@@ -89,6 +90,24 @@
 						travelPlan = [];
 					}
 				}
+
+				// 여행 계획 정보 저장 (title, summary, duration 등)
+				if (result.originalData) {
+					travelPlanInfo = result.originalData;
+				} else if (result.planInfo) {
+					travelPlanInfo = result.planInfo;
+				} else {
+					// 기본 정보 설정
+					travelPlanInfo = {
+						title: '전라북도 여행 계획',
+						summary: aiInput,
+						duration: '1-2일',
+						budget: {
+							estimated: '5-10만원',
+							breakdown: '교통비, 식비, 입장료 포함'
+						}
+					};
+				}
 				
 				showAiModal = false;
 				showTravelPlan = true;
@@ -131,6 +150,7 @@
 	function resetTravelPlan() {
 		showTravelPlan = false;
 		travelPlan = [];
+		travelPlanInfo = {};
 	}
 
 	onMount(async () => {
@@ -363,7 +383,20 @@
 	{#if showTravelPlan}
 		<div class="travel-plan-container">
 			<div class="travel-plan-header">
-				<h2>여행 계획</h2>
+				<div class="plan-title-section">
+					<h2>{travelPlanInfo.title || '여행 계획'}</h2>
+					{#if travelPlanInfo.summary}
+						<p class="plan-summary">{travelPlanInfo.summary}</p>
+					{/if}
+					<div class="plan-meta">
+						{#if travelPlanInfo.duration}
+							<span class="meta-item">📅 {travelPlanInfo.duration}</span>
+						{/if}
+						{#if travelPlanInfo.budget?.estimated}
+							<span class="meta-item">💰 {travelPlanInfo.budget.estimated}</span>
+						{/if}
+					</div>
+				</div>
 				<button class="close-plan-btn" on:click={resetTravelPlan}>×</button>
 			</div>
 			<div class="travel-plan-content">
@@ -371,22 +404,10 @@
 					{#each travelPlan as item, index}
 						<div class="plan-item">
 							<div class="plan-time">
-								<span class="time-badge">{item.time || `${index + 1}일차`}</span>
+								<span class="time-badge">{item.time || `${index + 1}번째`}</span>
 							</div>
 							<div class="plan-details">
-								<h3 class="plan-title">{item.title || item.activity || item.name}</h3>
-								{#if item.description}
-									<p class="plan-description">{item.description}</p>
-								{/if}
-								{#if item.location}
-									<p class="plan-location">📍 {item.location}</p>
-								{/if}
-								{#if item.duration}
-									<p class="plan-duration">⏰ {item.duration}</p>
-								{/if}
-								{#if item.cost}
-									<p class="plan-cost">💰 {item.cost}</p>
-								{/if}
+								<h3 class="plan-title">{item.title || item.location || `활동 ${index + 1}`}</h3>
 							</div>
 						</div>
 					{/each}
@@ -899,22 +920,49 @@
 	}
 
 	.travel-plan-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
 		padding: 1.5rem 2rem;
 		border-bottom: 1px solid #e5e7eb;
 		background: #f9fafb;
+		position: relative;
+	}
+
+	.plan-title-section {
+		padding-right: 3rem;
 	}
 
 	.travel-plan-header h2 {
 		font-size: 1.5rem;
 		font-weight: 700;
 		color: #1f2937;
-		margin: 0;
+		margin: 0 0 0.5rem 0;
+	}
+
+	.plan-summary {
+		font-size: 0.9rem;
+		color: #6b7280;
+		margin: 0 0 0.75rem 0;
+		line-height: 1.4;
+	}
+
+	.plan-meta {
+		display: flex;
+		gap: 1rem;
+		flex-wrap: wrap;
+	}
+
+	.meta-item {
+		font-size: 0.8rem;
+		color: #4b5563;
+		background: white;
+		padding: 0.25rem 0.5rem;
+		border-radius: 6px;
+		border: 1px solid #e5e7eb;
 	}
 
 	.close-plan-btn {
+		position: absolute;
+		top: 1.5rem;
+		right: 1.5rem;
 		background: none;
 		border: none;
 		font-size: 1.5rem;
@@ -943,7 +991,8 @@
 
 	.plan-item {
 		display: flex;
-		padding: 1.5rem 2rem;
+		align-items: center;
+		padding: 1rem 2rem;
 		border-bottom: 1px solid #f3f4f6;
 		transition: background-color 0.2s ease;
 	}
@@ -965,11 +1014,11 @@
 		display: inline-block;
 		background: #4f46e5;
 		color: white;
-		padding: 0.5rem 1rem;
-		border-radius: 20px;
-		font-size: 0.875rem;
+		padding: 0.4rem 0.8rem;
+		border-radius: 16px;
+		font-size: 0.8rem;
 		font-weight: 600;
-		min-width: 60px;
+		min-width: 50px;
 		text-align: center;
 	}
 
@@ -978,29 +1027,11 @@
 	}
 
 	.plan-title {
-		font-size: 1.1rem;
-		font-weight: 700;
+		font-size: 1rem;
+		font-weight: 600;
 		color: #1f2937;
-		margin: 0 0 0.5rem 0;
-		line-height: 1.4;
-	}
-
-	.plan-description {
-		font-size: 0.95rem;
-		color: #4b5563;
-		margin: 0 0 0.5rem 0;
-		line-height: 1.5;
-	}
-
-	.plan-location,
-	.plan-duration,
-	.plan-cost {
-		font-size: 0.875rem;
-		color: #6b7280;
-		margin: 0.25rem 0;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
+		margin: 0;
+		line-height: 1.3;
 	}
 
 	.no-plan {

@@ -34,7 +34,7 @@ async function getCategoryTourData() {
 
 async function getTouristData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/jeonbuktourist/getJeonbukTourist', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/jeonbuktourist', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
@@ -91,7 +91,7 @@ async function getAreaRestaurantData() {
 
 async function getLocalFoodData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/LocalFoodService/getLocalFood', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/JeonbukRestaurantService', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
@@ -294,6 +294,8 @@ ${JSON.stringify(jeonbukData.localFood.slice(0, 10), null, 2)}
       success: true,
       data: flattenedPlan.length > 0 ? flattenedPlan : travelPlan,
       plan: flattenedPlan.length > 0 ? flattenedPlan : travelPlan,
+      originalData: travelPlan, // 원본 데이터 (title, summary, duration 등 포함)
+      planInfo: travelPlan, // 호환성을 위한 별칭
       message: '여행 계획이 성공적으로 생성되었습니다!'
     });
 
