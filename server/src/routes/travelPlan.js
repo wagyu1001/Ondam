@@ -15,80 +15,95 @@ const OPEN_API_KEY = process.env.OPEN_API_KEY;
 // 공공데이터포털 API 호출 함수들
 async function getCategoryTourData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/CategoryTourService', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/CategoryTourService/getCategoryTour', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
-        numOfRows: 100
-      }
+        numOfRows: 100,
+        pageNo: 1
+      },
+      timeout: 10000 // 10초 타임아웃
     });
+    console.log('분류별 관광 정보 API 응답:', response.data);
     return response.data;
   } catch (error) {
-    console.error('분류별 관광 정보 API 오류:', error.message);
+    console.error('분류별 관광 정보 API 오류:', error.response?.data || error.message);
     return null;
   }
 }
 
 async function getTouristData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/jeonbuktourist', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/jeonbuktourist/getJeonbukTourist', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
-        numOfRows: 100
-      }
+        numOfRows: 100,
+        pageNo: 1
+      },
+      timeout: 10000
     });
+    console.log('주요 관광지 정보 API 응답:', response.data);
     return response.data;
   } catch (error) {
-    console.error('주요 관광지 정보 API 오류:', error.message);
+    console.error('주요 관광지 정보 API 오류:', error.response?.data || error.message);
     return null;
   }
 }
 
 async function getThemeRestaurantData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/ThemeRestaurantService', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/ThemeRestaurantService/getThemeRestaurant', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
-        numOfRows: 100
-      }
+        numOfRows: 100,
+        pageNo: 1
+      },
+      timeout: 10000
     });
+    console.log('테마별 음식점 정보 API 응답:', response.data);
     return response.data;
   } catch (error) {
-    console.error('테마별 음식점 정보 API 오류:', error.message);
+    console.error('테마별 음식점 정보 API 오류:', error.response?.data || error.message);
     return null;
   }
 }
 
 async function getAreaRestaurantData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/AreaRestaurantService', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/AreaRestaurantService/getAreaRestaurant', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
-        numOfRows: 100
-      }
+        numOfRows: 100,
+        pageNo: 1
+      },
+      timeout: 10000
     });
+    console.log('권역별 음식점 정보 API 응답:', response.data);
     return response.data;
   } catch (error) {
-    console.error('권역별 음식점 정보 API 오류:', error.message);
+    console.error('권역별 음식점 정보 API 오류:', error.response?.data || error.message);
     return null;
   }
 }
 
 async function getLocalFoodData() {
   try {
-    const response = await axios.get('https://apis.data.go.kr/6450000/LocalFoodService', {
+    const response = await axios.get('https://apis.data.go.kr/6450000/LocalFoodService/getLocalFood', {
       params: {
         serviceKey: OPEN_API_KEY,
         type: 'json',
-        numOfRows: 100
-      }
+        numOfRows: 100,
+        pageNo: 1
+      },
+      timeout: 10000
     });
+    console.log('향토음식점 정보 API 응답:', response.data);
     return response.data;
   } catch (error) {
-    console.error('향토음식점 정보 API 오류:', error.message);
+    console.error('향토음식점 정보 API 오류:', error.response?.data || error.message);
     return null;
   }
 }
@@ -113,6 +128,8 @@ router.post('/generate', async (req, res) => {
       });
     }
 
+    console.log('API 키 확인 완료 - Gemini:', !!process.env.GEMINI_API_KEY, 'OpenAPI:', !!process.env.OPEN_API_KEY);
+
     // 모든 공공데이터 API에서 정보 수집
     const [categoryTour, touristData, themeRestaurant, areaRestaurant, localFood] = await Promise.all([
       getCategoryTourData(),
@@ -123,13 +140,28 @@ router.post('/generate', async (req, res) => {
     ]);
 
     // 데이터 정리 및 통합
+    console.log('API 응답 데이터 확인:');
+    console.log('CategoryTour:', categoryTour ? 'Success' : 'Failed');
+    console.log('TouristData:', touristData ? 'Success' : 'Failed');
+    console.log('ThemeRestaurant:', themeRestaurant ? 'Success' : 'Failed');
+    console.log('AreaRestaurant:', areaRestaurant ? 'Success' : 'Failed');
+    console.log('LocalFood:', localFood ? 'Success' : 'Failed');
+
     const jeonbukData = {
-      categoryTour: categoryTour?.response?.body?.items?.item || [],
-      touristData: touristData?.response?.body?.items?.item || [],
-      themeRestaurant: themeRestaurant?.response?.body?.items?.item || [],
-      areaRestaurant: areaRestaurant?.response?.body?.items?.item || [],
-      localFood: localFood?.response?.body?.items?.item || []
+      categoryTour: categoryTour?.response?.body?.items?.item || categoryTour?.body?.items?.item || [],
+      touristData: touristData?.response?.body?.items?.item || touristData?.body?.items?.item || [],
+      themeRestaurant: themeRestaurant?.response?.body?.items?.item || themeRestaurant?.body?.items?.item || [],
+      areaRestaurant: areaRestaurant?.response?.body?.items?.item || areaRestaurant?.body?.items?.item || [],
+      localFood: localFood?.response?.body?.items?.item || localFood?.body?.items?.item || []
     };
+
+    console.log('데이터 개수:', {
+      categoryTour: jeonbukData.categoryTour.length,
+      touristData: jeonbukData.touristData.length,
+      themeRestaurant: jeonbukData.themeRestaurant.length,
+      areaRestaurant: jeonbukData.areaRestaurant.length,
+      localFood: jeonbukData.localFood.length
+    });
 
     // Gemini API를 사용하여 여행 계획 생성
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -232,9 +264,36 @@ ${JSON.stringify(jeonbukData.localFood.slice(0, 10), null, 2)}
       };
     }
 
+    // 여행 계획을 일차별로 평면화하여 클라이언트에서 쉽게 표시할 수 있도록 변환
+    let flattenedPlan = [];
+    if (travelPlan.days && Array.isArray(travelPlan.days)) {
+      travelPlan.days.forEach((day, dayIndex) => {
+        if (day.activities && Array.isArray(day.activities)) {
+          day.activities.forEach((activity, activityIndex) => {
+            flattenedPlan.push({
+              time: activity.time || `${dayIndex + 1}일차 ${activityIndex + 1}번째`,
+              title: activity.location || activity.title || `활동 ${activityIndex + 1}`,
+              description: activity.description || '',
+              location: activity.location || '',
+              duration: activity.duration || '',
+              cost: activity.cost || '',
+              type: activity.type || '활동',
+              day: day.day || dayIndex + 1
+            });
+          });
+        }
+      });
+    }
+
+    console.log('생성된 여행 계획:', {
+      original: travelPlan,
+      flattened: flattenedPlan
+    });
+
     res.json({
       success: true,
-      data: travelPlan,
+      data: flattenedPlan.length > 0 ? flattenedPlan : travelPlan,
+      plan: flattenedPlan.length > 0 ? flattenedPlan : travelPlan,
       message: '여행 계획이 성공적으로 생성되었습니다!'
     });
 
