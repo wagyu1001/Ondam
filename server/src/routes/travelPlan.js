@@ -521,4 +521,242 @@ ${language === 'ko' ? '응답은 반드시 위의 JSON 형식으로만 해주세
   }
 });
 
+// 구글 맵 Places API를 사용한 장소 검색
+router.get('/search', async (req, res) => {
+  try {
+    const { query = '', location = '35.7175,127.1530', radius = 50000, type = '' } = req.query;
+    
+    if (!query.trim()) {
+      return res.json({
+        success: true,
+        data: [],
+        message: '검색어를 입력해주세요.'
+      });
+    }
+
+    if (!process.env.GOOGLE_MAPS_API_KEY) {
+      console.log('Google Maps API 키가 설정되지 않음. 샘플 데이터로 폴백');
+      
+      // API 키가 없을 때 샘플 데이터 반환
+      const sampleResults = [
+        {
+          id: 'sample_1',
+          title: `${query} - 전주 한옥마을`,
+          location: '전주시 완산구 기린대로 99',
+          coordinates: [35.8154, 127.1534],
+          description: '전통 한옥이 잘 보존된 마을입니다.',
+          type: '관광지',
+          rating: 4.5,
+          price_level: null,
+          photos: [],
+          opening_hours: null,
+          source: 'sample_data'
+        },
+        {
+          id: 'sample_2',
+          title: `${query} - 전주 비빔밥`,
+          location: '전주시 완산구 한지길 89',
+          coordinates: [35.8167, 127.1544],
+          description: '전주 비빔밥의 진수를 맛볼 수 있는 곳입니다.',
+          type: '음식점',
+          rating: 4.3,
+          price_level: 2,
+          photos: [],
+          opening_hours: null,
+          source: 'sample_data'
+        },
+        {
+          id: 'sample_3',
+          title: `${query} - 덕진공원`,
+          location: '전주시 덕진구 덕진동',
+          coordinates: [35.8294, 127.1331],
+          description: '아름다운 연못과 정원이 있는 공원입니다.',
+          type: '공원',
+          rating: 4.2,
+          price_level: null,
+          photos: [],
+          opening_hours: null,
+          source: 'sample_data'
+        }
+      ];
+
+      return res.json({
+        success: true,
+        data: sampleResults,
+        message: `샘플 데이터: ${sampleResults.length}개의 장소를 찾았습니다. (Google Maps API 키를 설정하면 실제 데이터를 검색할 수 있습니다)`
+      });
+    }
+
+    console.log(`[${new Date().toISOString()}] 구글 맵 장소 검색 시작 - 검색어: "${query}"`);
+    
+    // Google Places API 검색 URL 구성
+    const placesUrl = 'https://maps.googleapis.com/maps/api/place/textsearch/json';
+    const params = new URLSearchParams({
+      query: `${query} 전라북도`,
+      key: process.env.GOOGLE_MAPS_API_KEY,
+      language: 'ko',
+      region: 'kr'
+    });
+
+    // 위치와 반경이 제공된 경우 추가
+    if (location) {
+      params.append('location', location);
+      params.append('radius', radius.toString());
+    }
+
+    // 타입이 제공된 경우 추가
+    if (type) {
+      params.append('type', type);
+    }
+
+    const response = await axios.get(`${placesUrl}?${params.toString()}`, {
+      timeout: 10000
+    });
+
+    if (response.data.status !== 'OK') {
+      throw new Error(`Google Places API 오류: ${response.data.status}`);
+    }
+
+    const searchResults = response.data.results.map(place => ({
+      id: place.place_id,
+      title: place.name,
+      location: place.formatted_address,
+      coordinates: place.geometry?.location ? [place.geometry.location.lat, place.geometry.location.lng] : null,
+      description: place.formatted_address,
+      type: getPlaceType(place.types),
+      rating: place.rating || 0,
+      price_level: place.price_level || null,
+      photos: place.photos || [],
+      opening_hours: place.opening_hours || null,
+      source: 'google_places'
+    }));
+
+    console.log(`[${new Date().toISOString()}] 구글 맵 검색 완료 - 결과: ${searchResults.length}개`);
+
+    res.json({
+      success: true,
+      data: searchResults,
+      message: `${searchResults.length}개의 장소를 찾았습니다.`
+    });
+
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] 구글 맵 검색 오류:`, error);
+    res.status(500).json({
+      success: false,
+      error: '장소 검색 중 오류가 발생했습니다: ' + error.message
+    });
+  }
+});
+
+// Google Places API 장소 타입을 한국어로 변환
+function getPlaceType(types) {
+  if (!types || types.length === 0) return '기타';
+  
+  const typeMap = {
+    'tourist_attraction': '관광지',
+    'amusement_park': '관광지',
+    'museum': '박물관',
+    'art_gallery': '미술관',
+    'zoo': '동물원',
+    'aquarium': '수족관',
+    'restaurant': '음식점',
+    'food': '음식점',
+    'cafe': '카페',
+    'bar': '바',
+    'lodging': '숙소',
+    'hotel': '호텔',
+    'shopping_mall': '쇼핑몰',
+    'store': '상점',
+    'park': '공원',
+    'natural_feature': '자연경관',
+    'church': '교회',
+    'temple': '사원',
+    'hospital': '병원',
+    'school': '학교',
+    'university': '대학교',
+    'gas_station': '주유소',
+    'atm': 'ATM',
+    'bank': '은행',
+    'post_office': '우체국',
+    'police': '경찰서',
+    'fire_station': '소방서'
+  };
+
+  // 첫 번째 매칭되는 타입을 반환
+  for (const type of types) {
+    if (typeMap[type]) {
+      return typeMap[type];
+    }
+  }
+
+  return '기타';
+}
+
+// 여행 계획에 장소 추가 API
+router.post('/add-place', async (req, res) => {
+  try {
+    const { place, planItems = [] } = req.body;
+    
+    if (!place || !place.id || !place.title) {
+      return res.status(400).json({
+        success: false,
+        error: '유효한 장소 정보를 제공해주세요.'
+      });
+    }
+
+    console.log(`[${new Date().toISOString()}] 여행 계획에 장소 추가 - 장소: "${place.title}"`);
+
+    // 새로운 여행 계획 항목 생성
+    const newPlanItem = {
+      id: `item_${Date.now()}_${place.id}`,
+      title: place.title,
+      location: place.location || '주소 정보 없음',
+      coordinates: place.coordinates || null,
+      description: place.description || '',
+      type: place.type || '장소',
+      time: `${planItems.length + 1}번째`,
+      travelTime: 0,
+      day: 1,
+      source: place.source || 'search'
+    };
+
+    // 이동 시간 계산 (이전 장소와의 거리 기반)
+    if (planItems.length > 0 && place.coordinates && planItems[planItems.length - 1].coordinates) {
+      const lastItem = planItems[planItems.length - 1];
+      const distance = calculateDistance(
+        lastItem.coordinates[0], lastItem.coordinates[1],
+        place.coordinates[0], place.coordinates[1]
+      );
+      newPlanItem.travelTime = Math.round(distance / 60); // 분 단위로 변환
+    }
+
+    console.log(`[${new Date().toISOString()}] 장소 추가 완료 - ID: ${newPlanItem.id}`);
+
+    res.json({
+      success: true,
+      data: newPlanItem,
+      message: '장소가 여행 계획에 추가되었습니다.'
+    });
+
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] 장소 추가 오류:`, error);
+    res.status(500).json({
+      success: false,
+      error: '장소 추가 중 오류가 발생했습니다: ' + error.message
+    });
+  }
+});
+
+// 거리 계산 함수 (Haversine 공식)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // 지구 반지름 (km)
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c; // km 단위
+}
+
 export default router;

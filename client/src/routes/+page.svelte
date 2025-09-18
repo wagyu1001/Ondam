@@ -319,6 +319,12 @@
 		}
 	}
 
+	// 자유 여행에서 검색 모달 열기
+	function openSearchFromSidebar() {
+		showSidebar = false;
+		showSearchModal = true;
+	}
+
 	// 여행 계획 초기화 핸들러
 	function resetTravelPlan() {
 		showTravelPlan = false;
@@ -387,76 +393,140 @@
 
 		isSearching = true;
 		try {
-			// 실제 구현에서는 API를 호출하지만, 여기서는 샘플 데이터를 사용
+			console.log(`장소 검색 시작: "${query}"`);
+			
+			const response = await fetch(`http://localhost:3001/api/travel-plan/search?query=${encodeURIComponent(query)}`, {
+				method: 'GET',
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				searchResults = result.data || [];
+				console.log(`검색 결과: ${searchResults.length}개`);
+			} else {
+				console.error('검색 실패:', result.error);
+				searchResults = [];
+				
+				// API 오류 시 샘플 데이터로 폴백
+				const samplePlaces = [
+					{
+						id: 'sample_place1',
+						title: '전주 한옥마을',
+						location: '전주시 완산구 기린대로 99',
+						coordinates: [35.8154, 127.1534],
+						description: '전통 한옥이 잘 보존된 마을',
+						type: '관광지'
+					},
+					{
+						id: 'sample_place2',
+						title: '전주 비빔밥 맛집',
+						location: '전주시 완산구 한지길 89',
+						coordinates: [35.8167, 127.1544],
+						description: '전주 비빔밥의 진수를 맛볼 수 있는 곳',
+						type: '맛집'
+					},
+					{
+						id: 'sample_place3',
+						title: '덕진공원',
+						location: '전주시 덕진구 덕진동',
+						coordinates: [35.8294, 127.1331],
+						description: '아름다운 연못과 정원이 있는 공원',
+						type: '공원'
+					}
+				];
+
+				// 검색어와 매칭되는 장소 필터링
+				searchResults = samplePlaces.filter(place => 
+					place.title.toLowerCase().includes(query.toLowerCase()) ||
+					place.description.toLowerCase().includes(query.toLowerCase()) ||
+					place.type.toLowerCase().includes(query.toLowerCase())
+				);
+			}
+		} catch (error) {
+			console.error('검색 오류:', error);
+			searchResults = [];
+			
+			// 네트워크 오류 시 샘플 데이터로 폴백
 			const samplePlaces = [
 				{
-					id: 'place1',
+					id: 'sample_place1',
 					title: '전주 한옥마을',
 					location: '전주시 완산구 기린대로 99',
 					coordinates: [35.8154, 127.1534],
 					description: '전통 한옥이 잘 보존된 마을',
 					type: '관광지'
-				},
-				{
-					id: 'place2',
-					title: '전주 비빔밥 맛집',
-					location: '전주시 완산구 한지길 89',
-					coordinates: [35.8167, 127.1544],
-					description: '전주 비빔밥의 진수를 맛볼 수 있는 곳',
-					type: '맛집'
-				},
-				{
-					id: 'place3',
-					title: '덕진공원',
-					location: '전주시 덕진구 덕진동',
-					coordinates: [35.8294, 127.1331],
-					description: '아름다운 연못과 정원이 있는 공원',
-					type: '공원'
-				},
-				{
-					id: 'place4',
-					title: '전주향교',
-					location: '전주시 완산구 향교길 145',
-					coordinates: [35.8147, 127.1522],
-					description: '조선시대 교육기관이었던 향교',
-					type: '문화재'
 				}
 			];
 
-			// 검색어와 매칭되는 장소 필터링
 			searchResults = samplePlaces.filter(place => 
 				place.title.toLowerCase().includes(query.toLowerCase()) ||
 				place.description.toLowerCase().includes(query.toLowerCase()) ||
 				place.type.toLowerCase().includes(query.toLowerCase())
 			);
-		} catch (error) {
-			console.error('검색 오류:', error);
-			searchResults = [];
 		} finally {
 			isSearching = false;
 		}
 	}
 
 	// 여행지 추가 함수
-	function addPlaceToPlan(place: any) {
-		const newItem = {
-			id: `item_${Date.now()}`,
-			title: place.title,
-			location: place.location,
-			coordinates: place.coordinates,
-			description: place.description,
-			type: place.type,
-			time: `${travelPlanItems.length + 1}번째`,
-			travelTime: 0
-		};
+	async function addPlaceToPlan(place: any) {
+		try {
+			console.log(`여행 계획에 장소 추가: ${place.title}`);
+			
+			const response = await fetch('http://localhost:3001/api/travel-plan/add-place', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					place: place,
+					planItems: travelPlanItems
+				})
+			});
 
-		travelPlanItems = [...travelPlanItems, newItem];
-		clearMapMarkers();
-		addMapMarkers(travelPlanItems);
-		recalculateTravelDistances();
-		showSearchModal = false;
-		searchQuery = '';
-		searchResults = [];
+			const result = await response.json();
+
+			if (result.success) {
+				const newItem = result.data;
+				travelPlanItems = [...travelPlanItems, newItem];
+				clearMapMarkers();
+				addMapMarkers(travelPlanItems);
+				recalculateTravelDistances();
+				showSearchModal = false;
+				searchQuery = '';
+				searchResults = [];
+				console.log('장소 추가 완료');
+			} else {
+				console.error('장소 추가 실패:', result.error);
+				alert('장소 추가에 실패했습니다: ' + result.error);
+			}
+		} catch (error) {
+			console.error('장소 추가 오류:', error);
+			
+			// API 오류 시 클라이언트에서 직접 추가
+			const newItem = {
+				id: `item_${Date.now()}`,
+				title: place.title,
+				location: place.location,
+				coordinates: place.coordinates,
+				description: place.description,
+				type: place.type,
+				time: `${travelPlanItems.length + 1}번째`,
+				travelTime: 0
+			};
+
+			travelPlanItems = [...travelPlanItems, newItem];
+			clearMapMarkers();
+			addMapMarkers(travelPlanItems);
+			recalculateTravelDistances();
+			showSearchModal = false;
+			searchQuery = '';
+			searchResults = [];
+		}
 	}
 
 	// 최적 경로 계산 (TSP 알고리즘 - 간단한 근사치)
@@ -814,11 +884,41 @@
 		<div class="sidebar-overlay" role="button" tabindex="0" on:click={handleSidebarOverlayClick} on:keydown={(e) => e.key === 'Escape' && closeSidebar()}>
 			<div class="sidebar">
 				<div class="sidebar-header">
-					<button class="add-btn">+</button>
+					<h2>자유 여행</h2>
 					<button class="close-btn" on:click={closeSidebar}>×</button>
 				</div>
 				<div class="sidebar-content">
-					<p class="sidebar-message">{t.addSchedule}</p>
+					<div class="sidebar-actions">
+						<button class="action-button search-action" on:click={openSearchFromSidebar}>
+							<span class="action-icon">🔍</span>
+							<span class="action-text">장소 검색하기</span>
+						</button>
+						<button class="action-button add-action" on:click={openSearchFromSidebar}>
+							<span class="action-icon">📍</span>
+							<span class="action-text">직접 장소 추가</span>
+						</button>
+					</div>
+					<p class="sidebar-message">검색을 통해 원하는 장소를 찾아 여행 계획에 추가해보세요.</p>
+					
+					{#if travelPlanItems.length > 0}
+						<div class="current-plan">
+							<h3>현재 여행 계획</h3>
+							<div class="plan-preview">
+								{#each travelPlanItems.slice(0, 3) as item, index}
+									<div class="preview-item">
+										<span class="preview-number">{index + 1}</span>
+										<span class="preview-title">{item.title}</span>
+									</div>
+								{/each}
+								{#if travelPlanItems.length > 3}
+									<div class="preview-more">+{travelPlanItems.length - 3}개 더</div>
+								{/if}
+							</div>
+							<button class="view-full-plan-btn" on:click={() => { showSidebar = false; showTravelPlan = true; }}>
+								전체 계획 보기
+							</button>
+						</div>
+					{/if}
 				</div>
 			</div>
 		</div>
@@ -960,8 +1060,22 @@
 										<div class="result-info">
 											<h4 class="result-title">{place.title}</h4>
 											<p class="result-location">{place.location}</p>
-											<p class="result-description">{place.description}</p>
-											<span class="result-type">{place.type}</span>
+											<div class="result-meta">
+												<span class="result-type">{place.type}</span>
+												{#if place.rating}
+													<span class="result-rating">
+														⭐ {place.rating.toFixed(1)}
+													</span>
+												{/if}
+												{#if place.price_level}
+													<span class="result-price">
+														{'$'.repeat(place.price_level)}
+													</span>
+												{/if}
+											</div>
+											{#if place.description}
+												<p class="result-description">{place.description}</p>
+											{/if}
 										</div>
 										<button class="add-btn" on:click={() => addPlaceToPlan(place)}>
 											{t.addToPlan}
@@ -1543,7 +1657,129 @@
 		color: #6b7280;
 		font-size: 1rem;
 		text-align: center;
+		margin-top: 1.5rem;
+		line-height: 1.5;
+	}
+
+	.sidebar-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+	.action-button {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 1.5rem;
+		background: white;
+		border: 2px solid #e5e7eb;
+		border-radius: 12px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		text-align: left;
+		width: 100%;
+	}
+
+	.action-button:hover {
+		border-color: #4f46e5;
+		background: #f8fafc;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+	}
+
+	.action-icon {
+		font-size: 1.5rem;
+		width: 2rem;
+		text-align: center;
+	}
+
+	.action-text {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #1f2937;
+	}
+
+	.current-plan {
 		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid #e5e7eb;
+	}
+
+	.current-plan h3 {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #1f2937;
+		margin: 0 0 1rem 0;
+	}
+
+	.plan-preview {
+		background: #f9fafb;
+		border-radius: 8px;
+		padding: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	.preview-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.preview-item:last-child {
+		border-bottom: none;
+	}
+
+	.preview-number {
+		background: #4f46e5;
+		color: white;
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.75rem;
+		font-weight: 600;
+		flex-shrink: 0;
+	}
+
+	.preview-title {
+		font-size: 0.9rem;
+		color: #374151;
+		font-weight: 500;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.preview-more {
+		font-size: 0.85rem;
+		color: #6b7280;
+		text-align: center;
+		padding: 0.5rem 0;
+		font-style: italic;
+	}
+
+	.view-full-plan-btn {
+		width: 100%;
+		padding: 0.75rem 1rem;
+		background: #4f46e5;
+		color: white;
+		border: none;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.view-full-plan-btn:hover {
+		background: #4338ca;
+		transform: translateY(-1px);
 	}
 
 	/* 애니메이션 */
@@ -2167,10 +2403,38 @@
 		line-height: 1.4;
 	}
 
+	.result-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+		flex-wrap: wrap;
+	}
+
 	.result-type {
 		display: inline-block;
 		background: #f3f4f6;
 		color: #374151;
+		padding: 0.2rem 0.5rem;
+		border-radius: 6px;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.result-rating {
+		display: inline-block;
+		background: #fef3c7;
+		color: #92400e;
+		padding: 0.2rem 0.5rem;
+		border-radius: 6px;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+
+	.result-price {
+		display: inline-block;
+		background: #d1fae5;
+		color: #065f46;
 		padding: 0.2rem 0.5rem;
 		border-radius: 6px;
 		font-size: 0.7rem;
