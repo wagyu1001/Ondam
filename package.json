@@ -20,6 +20,7 @@
     "concurrently": "^8.2.2"
   },
   "dependencies": {
-    "dotevn": "^0.0.1-security"
+    "dotevn": "^0.0.1-security",
+    "nodemailer": "^7.0.6"
   }
 }
