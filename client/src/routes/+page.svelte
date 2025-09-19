@@ -6,6 +6,7 @@
 	let map: any;
 	let L: any;
 	let isLoading = true;
+	let currentLoadingStep = 1;
 
 	// 모달 및 사이드바 상태 관리
 	let showAiModal = false;
@@ -30,6 +31,12 @@
 	let searchQuery = '';
 	let searchResults: any[] = [];
 	let isSearching = false;
+	
+	// 장소 리스트 선택 관련 상태
+	let showPlaceListModal = false;
+	let selectedCategory = 'all';
+	let placeList: any[] = [];
+	let isLoadingPlaces = false;
 	
 
 	
@@ -66,7 +73,64 @@
 			copyPlan: '여행 계획 복사',
 			copySuccess: '여행 계획이 클립보드에 복사되었습니다!',
 			copyError: '복사에 실패했습니다.',
-
+			freeTravel: '자유 여행',
+			searchPlaces: '장소 검색하기',
+			selectFromList: '장소 리스트에서 선택',
+			addDirectly: '직접 장소 추가',
+			searchMessage: '검색하거나 추천 장소 리스트에서 원하는 장소를 선택하여 여행 계획에 추가해보세요.',
+			currentPlan: '현재 여행 계획',
+			viewFullPlan: '전체 계획 보기',
+			addDestination: '여행지 추가',
+			deleteSchedule: '일정 삭제',
+			noPlansGenerated: '생성된 여행 계획이 없습니다.',
+			searching: '검색 중...',
+			searchDestinations: '여행지를 검색해보세요',
+			searchDescription: '전라북도의 관광지, 맛집, 숙박시설 등을 검색하여<br>여행 계획에 추가할 수 있습니다.',
+			selectFromPlaceList: '장소 리스트에서 선택',
+			allCategories: '전체',
+			attractions: '관광지',
+			restaurants: '음식점',
+			loadingPlaces: '장소 정보를 불러오는 중...',
+			addButton: '추가',
+			noPlacesFound: '장소가 없습니다',
+			noPlacesDescription: '선택한 카테고리에 해당하는 장소가 없습니다.',
+			pleaseEnterDescription: '여행에 대한 설명을 입력해주세요.',
+			planGenerationFailed: '여행 계획 생성에 실패했습니다',
+			planGenerationError: '여행 계획 생성 중 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.',
+			placeAddFailed: '장소 추가에 실패했습니다',
+			placeListLoadFailed: '장소 리스트 로드 실패',
+			placeListLoadError: '장소 리스트 로드 오류',
+			waitPlease: '잠시만 기다려주세요...',
+			aiAnalyzing: 'AI 분석 중',
+			dataCollecting: '데이터 수집 중',
+			planGenerating: '여행 계획 생성 중',
+			minutes: '분',
+			travel: '이동',
+			dayNumber: '일차',
+			jeonbukTravelPlan: '전라북도 여행 계획',
+			oneDayTrip: '1-2일',
+			jeonbukPlaceSearch: '전라북도 장소 검색 시작',
+			searchResults: '검색 결과',
+			searchFailed: '검색 실패',
+			searchError: '검색 오류',
+			addingPlace: '여행 계획에 장소 추가',
+			placeAddComplete: '장소 추가 완료',
+			activity: '활동',
+			ondamService: 'Ondam - 전라북도 여행 계획 서비스',
+			clipboardCopyError: '클립보드 복사 오류',
+			naverMap: '네이버 지도',
+			googleMap: '구글 지도',
+			naverSearch: '네이버 검색',
+			blogReviews: '블로그 후기',
+			travelInfo: '여행 정보',
+			reviews: '후기 여행',
+			time: '시간',
+			type: '유형',
+			description: '설명',
+			relatedLinks: '관련 링크',
+			jeonbukHanokVillage: '전주 한옥마을',
+			bibimbap: '비빔밥',
+			deokjinPark: '덕진공원'
 		},
 		en: {
 			logoSubtitle: 'Start of Jeollabuk-do Travel',
@@ -96,7 +160,64 @@
 			copyPlan: 'Copy Travel Plan',
 			copySuccess: 'Travel plan copied to clipboard!',
 			copyError: 'Failed to copy.',
-
+			freeTravel: 'Free Travel',
+			searchPlaces: 'Search Places',
+			selectFromList: 'Select from Place List',
+			addDirectly: 'Add Place Directly',
+			searchMessage: 'Search or select from recommended place list to add to your travel plan.',
+			currentPlan: 'Current Travel Plan',
+			viewFullPlan: 'View Full Plan',
+			addDestination: 'Add Destination',
+			deleteSchedule: 'Delete Schedule',
+			noPlansGenerated: 'No travel plans generated.',
+			searching: 'Searching...',
+			searchDestinations: 'Search for destinations',
+			searchDescription: 'Search for tourist attractions, restaurants, accommodations, etc. in Jeollabuk-do<br>and add them to your travel plan.',
+			selectFromPlaceList: 'Select from Place List',
+			allCategories: 'All',
+			attractions: 'Attractions',
+			restaurants: 'Restaurants',
+			loadingPlaces: 'Loading place information...',
+			addButton: 'Add',
+			noPlacesFound: 'No places found',
+			noPlacesDescription: 'No places found for the selected category.',
+			pleaseEnterDescription: 'Please enter a description of your trip.',
+			planGenerationFailed: 'Failed to generate travel plan',
+			planGenerationError: 'An error occurred while generating the travel plan. Please check if the server is running.',
+			placeAddFailed: 'Failed to add place',
+			placeListLoadFailed: 'Failed to load place list',
+			placeListLoadError: 'Error loading place list',
+			waitPlease: 'Please wait...',
+			aiAnalyzing: 'AI Analyzing',
+			dataCollecting: 'Collecting Data',
+			planGenerating: 'Generating Travel Plan',
+			minutes: 'min',
+			travel: 'Travel',
+			dayNumber: 'Day',
+			jeonbukTravelPlan: 'Jeollabuk-do Travel Plan',
+			oneDayTrip: '1-2 days',
+			jeonbukPlaceSearch: 'Starting Jeollabuk-do place search',
+			searchResults: 'Search Results',
+			searchFailed: 'Search failed',
+			searchError: 'Search error',
+			addingPlace: 'Adding place to travel plan',
+			placeAddComplete: 'Place added successfully',
+			activity: 'Activity',
+			ondamService: 'Ondam - Jeollabuk-do Travel Planning Service',
+			clipboardCopyError: 'Clipboard copy error',
+			naverMap: 'Naver Map',
+			googleMap: 'Google Map',
+			naverSearch: 'Naver Search',
+			blogReviews: 'Blog Reviews',
+			travelInfo: 'travel info',
+			reviews: 'reviews travel',
+			time: 'Time',
+			type: 'Type',
+			description: 'Description',
+			relatedLinks: 'Related Links',
+			jeonbukHanokVillage: 'Jeonju Hanok Village',
+			bibimbap: 'Bibimbap',
+			deokjinPark: 'Deokjin Park'
 		},
 		ja: {
 			logoSubtitle: '全羅北道旅行の始まり',
@@ -126,7 +247,64 @@
 			copyPlan: '旅行計画をコピー',
 			copySuccess: '旅行計画がクリップボードにコピーされました！',
 			copyError: 'コピーに失敗しました。',
-
+			freeTravel: 'フリーツアー',
+			searchPlaces: '場所を検索',
+			selectFromList: '場所リストから選択',
+			addDirectly: '直接場所を追加',
+			searchMessage: '検索または推奨場所リストから選択して旅行計画に追加してください。',
+			currentPlan: '現在の旅行計画',
+			viewFullPlan: '全体計画を見る',
+			addDestination: '旅行先を追加',
+			deleteSchedule: 'スケジュール削除',
+			noPlansGenerated: '生成された旅行計画がありません。',
+			searching: '検索中...',
+			searchDestinations: '旅行先を検索してください',
+			searchDescription: '全羅北道の観光地、レストラン、宿泊施設などを検索して<br>旅行計画に追加できます。',
+			selectFromPlaceList: '場所リストから選択',
+			allCategories: '全て',
+			attractions: '観光地',
+			restaurants: 'レストラン',
+			loadingPlaces: '場所情報を読み込み中...',
+			addButton: '追加',
+			noPlacesFound: '場所がありません',
+			noPlacesDescription: '選択したカテゴリに該当する場所がありません。',
+			pleaseEnterDescription: '旅行の説明を入力してください。',
+			planGenerationFailed: '旅行計画の生成に失敗しました',
+			planGenerationError: '旅行計画の生成中にエラーが発生しました。サーバーが実行中か確認してください。',
+			placeAddFailed: '場所の追加に失敗しました',
+			placeListLoadFailed: '場所リストの読み込みに失敗',
+			placeListLoadError: '場所リストの読み込みエラー',
+			waitPlease: 'しばらくお待ちください...',
+			aiAnalyzing: 'AI分析中',
+			dataCollecting: 'データ収集中',
+			planGenerating: '旅行計画生成中',
+			minutes: '分',
+			travel: '移動',
+			dayNumber: '日目',
+			jeonbukTravelPlan: '全羅北道旅行計画',
+			oneDayTrip: '1-2日',
+			jeonbukPlaceSearch: '全羅北道場所検索開始',
+			searchResults: '検索結果',
+			searchFailed: '検索失敗',
+			searchError: '検索エラー',
+			addingPlace: '旅行計画に場所を追加',
+			placeAddComplete: '場所追加完了',
+			activity: '活動',
+			ondamService: 'Ondam - 全羅北道旅行計画サービス',
+			clipboardCopyError: 'クリップボードコピーエラー',
+			naverMap: 'Naverマップ',
+			googleMap: 'Googleマップ',
+			naverSearch: 'Naver検索',
+			blogReviews: 'ブログレビュー',
+			travelInfo: '旅行情報',
+			reviews: 'レビュー旅行',
+			time: '時間',
+			type: 'タイプ',
+			description: '説明',
+			relatedLinks: '関連リンク',
+			jeonbukHanokVillage: '全州韓屋村',
+			bibimbap: 'ビビンバ',
+			deokjinPark: '徳津公園'
 		},
 		zh: {
 			logoSubtitle: '全罗北道旅行的开始',
@@ -155,7 +333,65 @@
 			cancel: '取消',
 			copyPlan: '复制旅行计划',
 			copySuccess: '旅行计划已复制到剪贴板！',
-			copyError: '复制失败。'
+			copyError: '复制失败。',
+			freeTravel: '自由旅行',
+			searchPlaces: '搜索地点',
+			selectFromList: '从地点列表选择',
+			addDirectly: '直接添加地点',
+			searchMessage: '搜索或从推荐地点列表中选择添加到您的旅行计划。',
+			currentPlan: '当前旅行计划',
+			viewFullPlan: '查看完整计划',
+			addDestination: '添加目的地',
+			deleteSchedule: '删除行程',
+			noPlansGenerated: '没有生成旅行计划。',
+			searching: '搜索中...',
+			searchDestinations: '搜索目的地',
+			searchDescription: '搜索全罗北道的旅游景点、餐厅、住宿等<br>并添加到您的旅行计划中。',
+			selectFromPlaceList: '从地点列表选择',
+			allCategories: '全部',
+			attractions: '景点',
+			restaurants: '餐厅',
+			loadingPlaces: '正在加载地点信息...',
+			addButton: '添加',
+			noPlacesFound: '没有找到地点',
+			noPlacesDescription: '所选类别中没有相应的地点。',
+			pleaseEnterDescription: '请输入旅行描述。',
+			planGenerationFailed: '旅行计划生成失败',
+			planGenerationError: '生成旅行计划时发生错误。请检查服务器是否正在运行。',
+			placeAddFailed: '添加地点失败',
+			placeListLoadFailed: '地点列表加载失败',
+			placeListLoadError: '地点列表加载错误',
+			waitPlease: '请稍等...',
+			aiAnalyzing: 'AI分析中',
+			dataCollecting: '数据收集中',
+			planGenerating: '旅行计划生成中',
+			minutes: '分钟',
+			travel: '移动',
+			dayNumber: '天',
+			jeonbukTravelPlan: '全罗北道旅行计划',
+			oneDayTrip: '1-2天',
+			jeonbukPlaceSearch: '开始全罗北道地点搜索',
+			searchResults: '搜索结果',
+			searchFailed: '搜索失败',
+			searchError: '搜索错误',
+			addingPlace: '向旅行计划添加地点',
+			placeAddComplete: '地点添加完成',
+			activity: '活动',
+			ondamService: 'Ondam - 全罗北道旅行计划服务',
+			clipboardCopyError: '剪贴板复制错误',
+			naverMap: 'Naver地图',
+			googleMap: 'Google地图',
+			naverSearch: 'Naver搜索',
+			blogReviews: '博客评论',
+			travelInfo: '旅行信息',
+			reviews: '评论旅行',
+			time: '时间',
+			type: '类型',
+			description: '描述',
+			relatedLinks: '相关链接',
+			jeonbukHanokVillage: '全州韩屋村',
+			bibimbap: '拌饭',
+			deokjinPark: '德津公园'
 		}
 	};
 	
@@ -303,7 +539,7 @@
 	// AI 생성 핸들러
 	async function handleAiGenerate() {
 		if (!aiInput.trim()) {
-			alert('여행에 대한 설명을 입력해주세요.');
+			alert(texts[currentLanguage].pleaseEnterDescription);
 			return;
 		}
 
@@ -311,8 +547,15 @@
 			// 로딩 상태 표시
 			showAiModal = false;
 			isLoading = true;
+			currentLoadingStep = 1;
 
-			const response = await fetch('http://localhost:3001/api/travel-plan/generate', {
+			// 스텝 1: AI 분석 중
+			setTimeout(() => { currentLoadingStep = 2; }, 1000);
+			
+			// 스텝 2: 데이터 수집 중
+			setTimeout(() => { currentLoadingStep = 3; }, 2000);
+
+			const response = await fetch('http://localhost:3002/api/travel-plan/generate', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ 
@@ -328,11 +571,11 @@
 				travelPlanItems = result.plan || result.data || [];
 				
 				// 여행 계획 메타데이터 저장 (서버에서 구조화된 planInfo 제공)
-				travelPlanInfo = result.planInfo || {
-					title: '전라북도 여행 계획',
-					summary: aiInput,
-					duration: '1-2일'
-				};
+			travelPlanInfo = result.planInfo || {
+				title: texts[currentLanguage].jeonbukTravelPlan,
+				summary: result.summary || '',
+				duration: texts[currentLanguage].oneDayTrip
+			};
 				
 				
 				showAiModal = false;
@@ -344,10 +587,10 @@
 					addMapMarkers(travelPlanItems);
 				}, 100);
 			} else {
-				alert('여행 계획 생성에 실패했습니다: ' + result.error);
+				alert(texts[currentLanguage].planGenerationFailed + ': ' + result.error);
 			}
 		} catch (error) {
-			alert('여행 계획 생성 중 오류가 발생했습니다. 서버가 실행 중인지 확인해주세요.');
+			alert(texts[currentLanguage].planGenerationError);
 		} finally {
 			// 로딩 상태 해제
 			isLoading = false;
@@ -377,6 +620,57 @@
 		showSearchModal = true;
 	}
 
+	// 장소 리스트 모달 열기
+	function openPlaceListModal() {
+		showSidebar = false;
+		showPlaceListModal = true;
+		loadPlaceList();
+	}
+
+
+
+	// 장소 리스트 가져오기
+	async function loadPlaceList() {
+		isLoadingPlaces = true;
+		try {
+			let endpoint = 'http://localhost:3002/api/places';
+			
+			if (selectedCategory === 'tourist') {
+				endpoint += '/attractions';
+			} else if (selectedCategory === 'restaurant') {
+				endpoint += '/restaurants';
+			}
+
+			const response = await fetch(endpoint);
+			const data = await response.json();
+			
+			if (data.success) {
+				placeList = data.data;
+			} else {
+				console.error('장소 리스트 로드 실패:', data.error);
+				placeList = [];
+			}
+		} catch (error) {
+			console.error('장소 리스트 로드 오류:', error);
+			placeList = [];
+		} finally {
+			isLoadingPlaces = false;
+		}
+	}
+
+	// 카테고리 변경
+	function changeCategory(category: string) {
+		selectedCategory = category;
+		loadPlaceList();
+	}
+
+	// 장소 리스트 모달 닫기
+	function closePlaceListModal() {
+		showPlaceListModal = false;
+		selectedCategory = 'all';
+		placeList = [];
+	}
+
 	// 여행 계획 초기화 핸들러
 	function resetTravelPlan() {
 		showTravelPlan = false;
@@ -393,6 +687,9 @@
 			addMapMarkers(travelPlanItems);
 			// 이동 거리 재계산
 			recalculateTravelDistances();
+		} else {
+			// 모든 항목이 삭제되면 여행 계획표 숨기기
+			showTravelPlan = false;
 		}
 	}
 
@@ -436,7 +733,7 @@
 		return R * c; // km 단위
 	}
 
-	// 여행지 검색 함수
+	// 전라북도 장소 검색 함수 (새로운 장소 데이터 API 사용)
 	async function searchPlaces(query: string) {
 		if (!query.trim()) {
 			searchResults = [];
@@ -445,9 +742,10 @@
 
 		isSearching = true;
 		try {
-			console.log(`장소 검색 시작: "${query}"`);
-			
-			const response = await fetch(`http://localhost:3001/api/travel-plan/search?query=${encodeURIComponent(query)}`, {
+			console.log(`${texts[currentLanguage].jeonbukPlaceSearch}: "${query}"`);
+		
+		// 모든 장소 데이터 가져오기
+			const response = await fetch('http://localhost:3002/api/places/all', {
 				method: 'GET',
 				headers: {
 					'Content-Type': 'application/json'
@@ -456,69 +754,38 @@
 
 			const result = await response.json();
 
-			if (result.success) {
-				searchResults = result.data || [];
-				console.log(`검색 결과: ${searchResults.length}개`);
-			} else {
-				console.error('검색 실패:', result.error);
-				searchResults = [];
-				
-				// API 오류 시 샘플 데이터로 폴백
-				const samplePlaces = [
-					{
-						id: 'sample_place1',
-						title: '전주 한옥마을',
-						location: '전주시 완산구 기린대로 99',
-						coordinates: [35.8154, 127.1534],
-						description: '전통 한옥이 잘 보존된 마을',
-						type: '관광지'
-					},
-					{
-						id: 'sample_place2',
-						title: '전주 비빔밥 맛집',
-						location: '전주시 완산구 한지길 89',
-						coordinates: [35.8167, 127.1544],
-						description: '전주 비빔밥의 진수를 맛볼 수 있는 곳',
-						type: '맛집'
-					},
-					{
-						id: 'sample_place3',
-						title: '덕진공원',
-						location: '전주시 덕진구 덕진동',
-						coordinates: [35.8294, 127.1331],
-						description: '아름다운 연못과 정원이 있는 공원',
-						type: '공원'
-					}
-				];
-
+			if (result.success && result.data) {
 				// 검색어와 매칭되는 장소 필터링
-				searchResults = samplePlaces.filter(place => 
-					place.title.toLowerCase().includes(query.toLowerCase()) ||
+				const filteredPlaces = result.data.filter((place: any) => 
+					place.name.toLowerCase().includes(query.toLowerCase()) ||
 					place.description.toLowerCase().includes(query.toLowerCase()) ||
-					place.type.toLowerCase().includes(query.toLowerCase())
+					place.category.toLowerCase().includes(query.toLowerCase()) ||
+					place.region.toLowerCase().includes(query.toLowerCase())
 				);
+
+				// 우리 형식으로 변환
+				searchResults = filteredPlaces.map((place: any) => ({
+					id: place.id,
+					title: place.name,
+					location: place.address,
+					coordinates: place.coordinates,
+					description: place.description,
+					type: place.type === 'attraction' ? texts[currentLanguage].attractions : texts[currentLanguage].restaurants,
+					category: place.category,
+					region: place.region,
+					rating: place.rating,
+					specialties: place.specialties || [],
+					price_range: place.price_range || '',
+					image: place.image
+				}));
+				console.log(`${texts[currentLanguage].searchResults}: ${searchResults.length}개`);
+			} else {
+				console.error(texts[currentLanguage].searchFailed + ':', result.error);
+				searchResults = [];
 			}
 		} catch (error) {
-			console.error('검색 오류:', error);
+			console.error(texts[currentLanguage].searchError + ':', error);
 			searchResults = [];
-			
-			// 네트워크 오류 시 샘플 데이터로 폴백
-			const samplePlaces = [
-				{
-					id: 'sample_place1',
-					title: '전주 한옥마을',
-					location: '전주시 완산구 기린대로 99',
-					coordinates: [35.8154, 127.1534],
-					description: '전통 한옥이 잘 보존된 마을',
-					type: '관광지'
-				}
-			];
-
-			searchResults = samplePlaces.filter(place => 
-				place.title.toLowerCase().includes(query.toLowerCase()) ||
-				place.description.toLowerCase().includes(query.toLowerCase()) ||
-				place.type.toLowerCase().includes(query.toLowerCase())
-			);
 		} finally {
 			isSearching = false;
 		}
@@ -526,18 +793,33 @@
 
 
 
+
+
 	// 여행지 추가 함수
 	async function addPlaceToPlan(place: any) {
 		try {
-			console.log(`여행 계획에 장소 추가: ${place.title}`);
+			// place 객체의 데이터 구조를 서버가 요구하는 형태로 변환
+			const placeData = {
+				id: place.id,
+				title: place.name || place.title, // name 필드를 title로 매핑
+				location: place.address || place.location,
+				coordinates: place.coordinates,
+				description: place.description,
+				type: place.type || 'attraction',
+				category: place.category,
+				rating: place.rating,
+				source: 'place_list'
+			};
 			
-			const response = await fetch('http://localhost:3001/api/travel-plan/add-place', {
+			console.log(`여행 계획에 장소 추가: ${placeData.title}`);
+			
+			const response = await fetch('http://localhost:3002/api/travel-plan/add-place', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					place: place,
+					place: placeData,
 					planItems: travelPlanItems
 				})
 			});
@@ -547,12 +829,21 @@
 			if (result.success) {
 				const newItem = result.data;
 				travelPlanItems = [...travelPlanItems, newItem];
+				
+				// 첫 장소 추가 시 여행 계획표 표시
+				if (travelPlanItems.length === 1) {
+					showTravelPlan = true;
+				}
+				
 				clearMapMarkers();
 				addMapMarkers(travelPlanItems);
 				recalculateTravelDistances();
 				showSearchModal = false;
+				showPlaceListModal = false;
 				searchQuery = '';
 				searchResults = [];
+				selectedCategory = 'all';
+				placeList = [];
 				console.log('장소 추가 완료');
 			} else {
 				console.error('장소 추가 실패:', result.error);
@@ -564,22 +855,31 @@
 			// API 오류 시 클라이언트에서 직접 추가
 			const newItem = {
 				id: `item_${Date.now()}`,
-				title: place.title,
-				location: place.location,
+				title: place.name || place.title,
+				location: place.address || place.location,
 				coordinates: place.coordinates,
 				description: place.description,
-				type: place.type,
+				type: place.type || 'attraction',
 				time: `${travelPlanItems.length + 1}번째`,
 				travelTime: 0
 			};
 
 			travelPlanItems = [...travelPlanItems, newItem];
+			
+			// 첫 장소 추가 시 여행 계획표 표시
+			if (travelPlanItems.length === 1) {
+				showTravelPlan = true;
+			}
+			
 			clearMapMarkers();
 			addMapMarkers(travelPlanItems);
 			recalculateTravelDistances();
 			showSearchModal = false;
+			showPlaceListModal = false;
 			searchQuery = '';
 			searchResults = [];
+			selectedCategory = 'all';
+			placeList = [];
 		}
 	}
 
@@ -674,7 +974,7 @@
 					planText += `   유형: ${item.type}\n`;
 				}
 				if (item.travelTime > 0) {
-					planText += `   이동시간: ${item.travelTime}분\n`;
+					planText += `   이동시간: ${item.travelTime}${getTimeUnit()}\n`;
 				}
 				planText += `   시간: ${item.time || `${index + 1}번째`}\n\n`;
 			});
@@ -765,7 +1065,7 @@
 		if (travelTime && travelTime > 0) {
 			const timeIcon = L.divIcon({
 				className: 'travel-time-marker',
-				html: `<div class="travel-time-label">${travelTime}분</div>`,
+				html: `<div class="travel-time-label">${travelTime}${getTimeUnit()}</div>`,
 				iconSize: [60, 25],
 				iconAnchor: [30, 12]
 			});
@@ -785,7 +1085,15 @@
 
 	// 모든 경로 라인과 화살표를 그리는 함수
 	function drawAllRoutes(plan: any[]) {
-		if (!map || !L || plan.length < 2) return;
+		if (!map || !L) return;
+		
+		// plan이 배열인지 확인
+		if (!Array.isArray(plan) || plan.length < 2) {
+			if (!Array.isArray(plan)) {
+				console.warn('Plan is not an array in drawAllRoutes:', plan);
+			}
+			return;
+		}
 
 		for (let i = 0; i < plan.length - 1; i++) {
 			const current = plan[i];
@@ -842,6 +1150,12 @@
 		
 		clearMapMarkers();
 		
+		// plan이 배열인지 확인
+		if (!Array.isArray(plan)) {
+			console.warn('Plan is not an array:', plan);
+			return;
+		}
+		
 		plan.forEach((item, index) => {
 			if (item.coordinates && Array.isArray(item.coordinates) && item.coordinates.length === 2) {
 				const [lat, lng] = item.coordinates;
@@ -867,11 +1181,11 @@
 				marker.bindPopup(`
 					<div class="marker-popup">
 						<h4>${item.title || item.location}</h4>
-						<p><strong>시간:</strong> ${item.time}</p>
-						<p><strong>유형:</strong> ${item.type}</p>
-						${item.description ? `<p><strong>설명:</strong> ${item.description}</p>` : ''}
+						<p><strong>${currentLanguage == 'ko' ? '시간' : 'time'}:</strong> ${item.time}</p>
+						<p><strong>${currentLanguage == 'ko' ? '유형형' : 'type'}:</strong> ${item.type}</p>
+						${item.description ? `<p><strong>${currentLanguage == 'ko' ? '설명' : 'description'}:</strong> ${item.description}</p>` : ''}
 						<div class="popup-links">
-							<p><strong>관련 링크:</strong></p>
+							<p><strong>${currentLanguage == 'ko' ? '관련 링크크' : 'links'}:</strong></p>
 							<div class="links-container">
 								${relatedLinks}
 							</div>
@@ -1089,12 +1403,16 @@
 							<span class="action-icon">🔍</span>
 							<span class="action-text">장소 검색하기</span>
 						</button>
+						<button class="action-button list-action" on:click={openPlaceListModal}>
+							<span class="action-icon">📋</span>
+							<span class="action-text">장소 리스트에서 선택</span>
+						</button>
 						<button class="action-button add-action" on:click={openSearchFromSidebar}>
 							<span class="action-icon">📍</span>
 							<span class="action-text">직접 장소 추가</span>
 						</button>
 					</div>
-					<p class="sidebar-message">검색을 통해 원하는 장소를 찾아 여행 계획에 추가해보세요.</p>
+					<p class="sidebar-message">검색하거나 추천 장소 리스트에서 원하는 장소를 선택하여 여행 계획에 추가해보세요.</p>
 					
 					{#if travelPlanItems.length > 0}
 						<div class="current-plan">
@@ -1136,9 +1454,9 @@
 					</div>
 				</div>
 				<div class="plan-actions">
-					<button class="search-btn primary-action" on:click={toggleSearchModal} title={t.searchPlace}>
-						<span class="search-icon">🔍</span>
-						<span class="search-text">여행지 추가</span>
+					<button class="search-btn primary-action" on:click={openPlaceListModal} title={t.searchPlace}>
+						<span class="search-icon">📋</span>
+						<span class="search-text">{currentLanguage == 'ko' ? '여행지 추가' : 'Add visit'}</span>
 					</button>
 					<button class="copy-btn" on:click={copyTravelPlanToClipboard} title={t.copyPlan}>
 						<span class="copy-icon">📋</span>
@@ -1234,15 +1552,15 @@
 					<p>{getLoadingMessage()}</p>
 				</div>
 				<div class="loading-steps">
-					<div class="step active">
+					<div class="step {currentLoadingStep >= 1 ? 'active' : ''}">
 						<span class="step-icon">🤖</span>
 						<span class="step-text">{getStepText('step1')}</span>
 					</div>
-					<div class="step">
+					<div class="step {currentLoadingStep >= 2 ? 'active' : ''}">
 						<span class="step-icon">📊</span>
 						<span class="step-text">{getStepText('step2')}</span>
 					</div>
-					<div class="step">
+					<div class="step {currentLoadingStep >= 3 ? 'active' : ''}">
 						<span class="step-icon">🗺️</span>
 						<span class="step-text">{getStepText('step3')}</span>
 					</div>
@@ -1281,6 +1599,16 @@
 							<div class="results-list">
 								{#each searchResults as place}
 									<div class="result-item" role="button" tabindex="0" on:click={() => addPlaceToPlan(place)} on:keydown={(e) => e.key === 'Enter' && addPlaceToPlan(place)}>
+										{#if place.photo_reference}
+											<div class="result-photo">
+												<img 
+													src={getPlacePhotoUrl(place.photo_reference, 150)} 
+													alt={place.title}
+													loading="lazy"
+													on:error={(e) => e.target.style.display = 'none'}
+												/>
+											</div>
+										{/if}
 										<div class="result-info">
 											<h4 class="result-title">{place.title}</h4>
 											<p class="result-location">{place.location}</p>
@@ -1324,6 +1652,79 @@
 								<span class="example-tag" on:click={() => { searchQuery = '비빔밥'; searchPlaces('비빔밥'); }}>비빔밥</span>
 								<span class="example-tag" on:click={() => { searchQuery = '덕진공원'; searchPlaces('덕진공원'); }}>덕진공원</span>
 							</div>
+						</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{/if}
+
+	<!-- 장소 리스트 모달 -->
+	{#if showPlaceListModal}
+		<div class="modal-overlay" role="button" tabindex="0" on:click={closePlaceListModal} on:keydown={(e) => e.key === 'Escape' && closePlaceListModal()}>
+			<div class="modal-content place-list-modal" role="dialog" on:click|stopPropagation>
+				<div class="modal-header">
+					<h2>장소 리스트에서 선택</h2>
+					<button class="close-btn" on:click={closePlaceListModal}>×</button>
+				</div>
+				
+				<!-- 카테고리 선택 -->
+				<div class="category-tabs">
+					<button 
+						class="category-tab {selectedCategory === 'all' ? 'active' : ''}"
+						on:click={() => changeCategory('all')}
+					>
+						전체
+					</button>
+					<button 
+						class="category-tab {selectedCategory === 'tourist' ? 'active' : ''}"
+						on:click={() => changeCategory('tourist')}
+					>
+						관광지
+					</button>
+					<button 
+						class="category-tab {selectedCategory === 'restaurant' ? 'active' : ''}"
+						on:click={() => changeCategory('restaurant')}
+					>
+						음식점
+					</button>
+				</div>
+				
+				<!-- 장소 리스트 -->
+				<div class="place-list-content">
+					{#if isLoadingPlaces}
+						<div class="loading-places">
+							<div class="loading-spinner"></div>
+							<p>장소 정보를 불러오는 중...</p>
+						</div>
+					{:else if placeList.length > 0}
+						<div class="places-grid">
+							{#each placeList as place}
+								<div class="place-card" role="button" tabindex="0" on:click={() => addPlaceToPlan(place)} on:keydown={(e) => e.key === 'Enter' && addPlaceToPlan(place)}>
+									<div class="place-info">
+										<h4 class="place-title">{place.title}</h4>
+										<p class="place-location">{place.location}</p>
+										<div class="place-meta">
+											<span class="place-type">{place.type}</span>
+											{#if place.region}
+												<span class="place-region">{place.region}</span>
+											{/if}
+										</div>
+										{#if place.description}
+											<p class="place-description">{place.description}</p>
+										{/if}
+									</div>
+									<button class="add-place-btn" on:click|stopPropagation={() => addPlaceToPlan(place)}>
+										추가
+									</button>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="no-places">
+							<div class="no-places-icon">📍</div>
+							<h3>장소가 없습니다</h3>
+							<p>선택한 카테고리에 해당하는 장소가 없습니다.</p>
 						</div>
 					{/if}
 				</div>
@@ -1538,7 +1939,7 @@
 	.travel-options {
 		position: absolute;
 		bottom: 3rem;
-		left: 50%;
+		left: 78%;
 		transform: translateX(-50%);
 		display: flex;
 		gap: 1.5rem;
@@ -1797,6 +2198,8 @@
 		color: #9ca3af;
 		opacity: 1;
 	}
+
+
 
 	.modal-actions {
 		display: flex;
@@ -2785,12 +3188,36 @@
 		cursor: pointer;
 		transition: all 0.2s ease;
 		background: white;
+		gap: 1rem;
 	}
 
 	.result-item:hover {
 		border-color: #4f46e5;
 		box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
 		transform: translateY(-1px);
+	}
+
+	.result-photo {
+		flex-shrink: 0;
+		width: 80px;
+		height: 80px;
+		border-radius: 8px;
+		overflow: hidden;
+		background: #f3f4f6;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.result-photo img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		transition: transform 0.2s ease;
+	}
+
+	.result-item:hover .result-photo img {
+		transform: scale(1.05);
 	}
 
 	.search-help {
@@ -3099,5 +3526,196 @@
 		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 		backdrop-filter: blur(4px);
 		white-space: nowrap;
+	}
+
+	/* 장소 리스트 모달 스타일 */
+	.place-list-modal {
+		max-width: 800px;
+		max-height: 80vh;
+		width: 90vw;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.category-tabs {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1.5rem;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 1rem;
+	}
+
+	.category-tab {
+		padding: 0.5rem 1rem;
+		border: 1px solid #e5e7eb;
+		background: white;
+		color: #6b7280;
+		border-radius: 8px;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		font-weight: 500;
+	}
+
+	.category-tab:hover {
+		background: #f9fafb;
+		border-color: #d1d5db;
+	}
+
+	.category-tab.active {
+		background: #4f46e5;
+		color: white;
+		border-color: #4f46e5;
+	}
+
+	.place-list-content {
+		flex: 1;
+		overflow-y: auto;
+		min-height: 400px;
+	}
+
+	.loading-places {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 3rem;
+		color: #6b7280;
+	}
+
+	.loading-spinner {
+		width: 40px;
+		height: 40px;
+		border: 3px solid #e5e7eb;
+		border-top: 3px solid #4f46e5;
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+		margin-bottom: 1rem;
+	}
+
+	.places-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+		gap: 1rem;
+		padding: 0.5rem;
+	}
+
+	.place-card {
+		background: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 12px;
+		padding: 1rem;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		gap: 1rem;
+	}
+
+	.place-card:hover {
+		border-color: #4f46e5;
+		box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+		transform: translateY(-2px);
+	}
+
+	.place-info {
+		flex: 1;
+	}
+
+	.place-title {
+		margin: 0 0 0.5rem 0;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #1f2937;
+	}
+
+	.place-location {
+		margin: 0 0 0.5rem 0;
+		color: #6b7280;
+		font-size: 0.9rem;
+	}
+
+	.place-meta {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+
+	.place-type, .place-region {
+		padding: 0.25rem 0.5rem;
+		background: #f3f4f6;
+		color: #4b5563;
+		border-radius: 6px;
+		font-size: 0.8rem;
+		font-weight: 500;
+	}
+
+	.place-type {
+		background: #dbeafe;
+		color: #1e40af;
+	}
+
+	.place-region {
+		background: #f0fdf4;
+		color: #166534;
+	}
+
+	.place-description {
+		margin: 0;
+		color: #6b7280;
+		font-size: 0.85rem;
+		line-height: 1.4;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.add-place-btn {
+		padding: 0.5rem 1rem;
+		background: #4f46e5;
+		color: white;
+		border: none;
+		border-radius: 8px;
+		cursor: pointer;
+		font-weight: 500;
+		transition: all 0.2s ease;
+		white-space: nowrap;
+	}
+
+	.add-place-btn:hover {
+		background: #4338ca;
+		transform: translateY(-1px);
+	}
+
+	.no-places {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 3rem;
+		color: #6b7280;
+		text-align: center;
+	}
+
+	.no-places-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+		opacity: 0.5;
+	}
+
+	.no-places h3 {
+		margin: 0 0 0.5rem 0;
+		color: #374151;
+	}
+
+	.no-places p {
+		margin: 0;
+		font-size: 0.9rem;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
 	}
 </style>

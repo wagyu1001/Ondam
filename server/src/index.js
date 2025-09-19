@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import travelPlanRoutes from './routes/travelPlan.js';
+import placesRoutes from './routes/places.js';
 
 // Load environment variables
 dotenv.config({ quiet: true });
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:5173','http://localhost:5174', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -41,6 +42,10 @@ app.get('/api/health', (req, res) => {
 
 // Travel Plan API Routes
 app.use('/api/travel-plan', travelPlanRoutes);
+
+// Google Places API Routes
+app.use('/api/places', placesRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -767,8 +767,8 @@ router.post('/add-place', async (req, res) => {
     if (planItems.length > 0 && place.coordinates && planItems[planItems.length - 1].coordinates) {
       const lastItem = planItems[planItems.length - 1];
       const distance = calculateDistance(
-        lastItem.coordinates[0], lastItem.coordinates[1],
-        place.coordinates[0], place.coordinates[1]
+        lastItem.coordinates,
+        place.coordinates
       );
       newPlanItem.travelTime = Math.round(distance / 60); // 분 단위로 변환
     }
